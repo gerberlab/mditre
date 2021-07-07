@@ -40,8 +40,6 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch.utils.data
-from torch.utils.tensorboard import SummaryWriter
-import torchvision.utils
 
 from torch.distributions.normal import Normal
 from torch.distributions.negative_binomial import NegativeBinomial
@@ -50,9 +48,9 @@ from torch.distributions.beta import Beta
 from torch.distributions.gamma import Gamma
 from torch.distributions.multivariate_normal import MultivariateNormal
 
-from data import *
-from models import MDITRE, binary_concrete, transf_log, inv_transf_log
-from utils import AverageMeter, get_logger
+from mditre.data import *
+from mditre.models import MDITRE, binary_concrete, transf_log, inv_transf_log
+from mditre.utils import AverageMeter, get_logger
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -169,6 +167,9 @@ class Trainer(object):
                                                  timeout=datetime.timedelta(days=7))
             self.args.world_size = torch.distributed.get_world_size()
             self.args.rank = torch.distributed.get_rank()
+        else:
+            self.args.rank = 0
+            self.args.world_size = 1
 
         # Check for determinism in training, set random seed
         if self.args.deterministic:
