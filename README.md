@@ -6,8 +6,6 @@ We present a new differentiable model that learns human interpretable rules from
 #### First clone the repo
      $ git clone https://github.com/gerberlab/mditre.git
      $ cd mditre
-#### Switch to the latest branch mditre_v2
-     $ git checkout mditre_v2
 #### Install pytorch
      $ pip install torch==1.4.0 torchvision==0.5.0 -f https://download.pytorch.org/whl/cu100/torch_stable.html
 #### Install mditre
