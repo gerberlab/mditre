@@ -65,36 +65,36 @@ def parse():
                         help='Name of the dataset, will be used for log dirname')
     parser.add_argument('--workers', default=0, type=int,
                         help='number of data loading workers (default: 0)')
-    parser.add_argument('--epochs', default=100, type=int, metavar='N',
+    parser.add_argument('--epochs', default=2000, type=int, metavar='N',
                         help='number of total epochs to run')
-    parser.add_argument('-b', '--batch-size', default=48, type=int,
+    parser.add_argument('-b', '--batch-size', default=128, type=int,
                         metavar='N', help='mini-batch size')
-    parser.add_argument('--lr_kappa', default=0.1, type=float,
+    parser.add_argument('--lr_kappa', default=0.001, type=float,
                         help='Initial learning rate for kappa.')
-    parser.add_argument('--lr_eta', default=0.1, type=float,
+    parser.add_argument('--lr_eta', default=0.001, type=float,
                         help='Initial learning rate for eta.')
-    parser.add_argument('--lr_time', default=0.1, type=float,
+    parser.add_argument('--lr_time', default=0.01, type=float,
                         help='Initial learning rate for sigma.')
-    parser.add_argument('--lr_mu', default=0.1, type=float,
+    parser.add_argument('--lr_mu', default=0.01, type=float,
                         help='Initial learning rate for mu.')
-    parser.add_argument('--lr_thresh', default=0.005, type=float,
+    parser.add_argument('--lr_thresh', default=0.001, type=float,
                         help='Initial learning rate for threshold.')
-    parser.add_argument('--lr_slope', default=1e-5, type=float,
+    parser.add_argument('--lr_slope', default=1e-4, type=float,
                         help='Initial learning rate for threshold.')
-    parser.add_argument('--lr_alpha', default=0.05, type=float,
+    parser.add_argument('--lr_alpha', default=0.001, type=float,
                         help='Initial learning rate for binary concrete logits on detectors.')
-    parser.add_argument('--lr_beta', default=0.01, type=float,
+    parser.add_argument('--lr_beta', default=0.001, type=float,
                         help='Initial learning rate for binary concrete logits on rules.')
-    parser.add_argument('--lr_fc', default=0.01, type=float,
+    parser.add_argument('--lr_fc', default=0.001, type=float,
                         help='Initial learning rate for linear classifier weights and bias.')
-    parser.add_argument('--lr_bias', default=0.01, type=float,
+    parser.add_argument('--lr_bias', default=0.001, type=float,
                         help='Initial learning rate for linear classifier weights and bias.')
-    parser.add_argument('--deterministic', action='store_true')
+    parser.add_argument('--deterministic', action='store_true', default=True,)
     parser.add_argument('--seed', type=int, default=42,
                         help='Set random seed for reproducibility')
-    parser.add_argument('--min_k_otu', default=1, type=float,
+    parser.add_argument('--min_k_otu', default=10, type=float,
                         help='Max Temperature on heavyside logistic for otu selection')
-    parser.add_argument('--max_k_otu', default=10, type=float,
+    parser.add_argument('--max_k_otu', default=100, type=float,
                         help='Min Temperature on heavyside logistic for otu selection')
     parser.add_argument('--min_k_time', default=1, type=float,
                         help='Max Temperature on heavyside logistic for time window')
@@ -102,11 +102,11 @@ def parse():
                         help='Min Temperature on heavyside logistic for time window')
     parser.add_argument('--min_k_thresh', default=100, type=float,
                         help='Max Temperature on heavyside logistic for threshold')
-    parser.add_argument('--max_k_thresh', default=500, type=float,
+    parser.add_argument('--max_k_thresh', default=1000, type=float,
                         help='Min Temperature on heavyside logistic for threshold')
-    parser.add_argument('--min_k_slope', default=1e4, type=float,
+    parser.add_argument('--min_k_slope', default=1e3, type=float,
                         help='Max Temperature on heavyside logistic for threshold')
-    parser.add_argument('--max_k_slope', default=1e5, type=float,
+    parser.add_argument('--max_k_slope', default=1e4, type=float,
                         help='Min Temperature on heavyside logistic for threshold')
     parser.add_argument('--min_k_bc', default=1, type=float,
                         help='Min Temperature for binary concretes')
@@ -114,32 +114,32 @@ def parse():
                         help='Max Temperature for binary concretes')
     parser.add_argument('--n_d', type=int, default=10,
                         help='Number of detectors (otus)')
-    parser.add_argument('--cv_type', type=str, default='loo',
+    parser.add_argument('--cv_type', type=str, default='None',
                         choices=['loo', 'kfold', 'None'],
                         help='Choose cross val type')
     parser.add_argument('--kfolds', type=int, default=5,
                         help='Number of folds for k-fold cross val')
     parser.add_argument('--z_mean', type=float, default=0,
                         help='NBD Mean active detectors per rule')
-    parser.add_argument('--z_var', type=float, default=100,
+    parser.add_argument('--z_var', type=float, default=1,
                         help='NBD variance of active detectors per rule')
     parser.add_argument('--z_r_mean', type=float, default=0,
                         help='NBD Mean active rules')
-    parser.add_argument('--z_r_var', type=float, default=100,
+    parser.add_argument('--z_r_var', type=float, default=1,
                         help='NBD variance of active rules')
     parser.add_argument('--w_var', type=float, default=1e5,
                         help='Normal prior variance on weights.')
-    parser.add_argument('--dist_prior', default=10, type=float,
-                        help='phylo dist prior')
     parser.add_argument("--local_rank", default=0, type=int)
     parser.add_argument('--distributed', action='store_true',
                         help='Use distributed multiprocess training')
-    parser.add_argument('--save_as_csv', action='store_true',
+    parser.add_argument('--save_as_csv', action='store_true', default=True,
                         help='Debugging')
     parser.add_argument('--inner_cv', action='store_true',
                         help='Do inner cross val')
+    parser.add_argument('--verbose', action='store_true', default=False,
+                        help='Print training logs')
 
-    args = parser.parse_args()
+    args = parser.parse_args([])
     return args
 
 
@@ -619,7 +619,8 @@ class Trainer(object):
                 else:
                     val_ids = train_ids
 
-                self.logger.info('Initializing model!')
+                if not self.args.rank:
+                    self.logger.info('Initializing model!')
 
                 # Init time windows
                 t_split = np.array_split(acc_center_abun, N_cur)
@@ -727,9 +728,11 @@ class Trainer(object):
                 model_init = deepcopy(model)
 
                 if not self.args.rank:
-                    for k, v in model.named_parameters():
-                        self.logger.info(k)
-                        self.logger.info(v)
+                    if self.args.verbose:
+                        for k, v in model.named_parameters():
+                            self.logger.info(k)
+                            self.logger.info(v)
+                    self.logger.info('Model training started!')
 
                 # Inner loop training, store best model
                 best_model = self.train_model(model, train_loader,
@@ -742,9 +745,10 @@ class Trainer(object):
                 k_fold_test_true[test_ids] = true
 
                 if not self.args.rank:
-                    for k, v in best_model.named_parameters():
-                        self.logger.info(k)
-                        self.logger.info(v)
+                    if self.args.verbose:
+                        for k, v in best_model.named_parameters():
+                            self.logger.info(k)
+                            self.logger.info(v)
 
                 self.show_rules(best_model, full_loader, i, save_viz=True, best_model_init=model_init)
 
@@ -966,20 +970,54 @@ class Trainer(object):
                 negbin_z_loss.item(), l2_wts_loss.item(), time_loss.item(), time_slope_loss.item()]
 
             # Print epoch stats
-            kfold_epochs = 'Outer kfold: %d Epoch: %d '
-            train_stats = 'TrainLoss: %.2f TrainF1: %.2f '
-            val_stats = 'ValLoss: %.2f ValF1: %.2f '
-            test_stats = 'TestLoss: %.2f TestF1: %.2f '
-            log_str = kfold_epochs + train_stats + val_stats + test_stats
-            if not self.args.rank:
-                self.logger.info(
-                    log_str % (outer_fold, epoch,
-                        train_loss_avg.avg, train_f1_avg.avg,
-                        val_loss, val_f1, test_loss, test_f1,
+            if self.args.verbose:
+                if not self.args.rank:
+                    kfold_epochs = 'Outer kfold: %d Epoch: %d '
+                    train_stats = 'TrainLoss: %.2f TrainF1: %.2f '
+                    val_stats = 'ValLoss: %.2f ValF1: %.2f '
+                    test_stats = 'TestLoss: %.2f TestF1: %.2f '
+                    log_str = kfold_epochs + train_stats + val_stats + test_stats
+                    self.logger.info(
+                        log_str % (outer_fold, epoch,
+                            train_loss_avg.avg, train_f1_avg.avg,
+                            val_loss, val_f1, test_loss, test_f1,
+                        )
                     )
-                )
 
             scheduler_0.step()
+
+        # save loss plots
+        fig = plt.figure(figsize=(15, 10), constrained_layout=True)
+        axd = fig.subplot_mosaic(
+            '''
+            ABC
+            DEF
+            GHI
+            JKL
+            MNO
+            PQ.
+            ''')
+        axd['A'] = self.simple_plot(ls, 'Training Epochs', 'Total loss', '{}/loss_traj.pdf'.format(dirName), ax=axd['A'])
+        axd['B'] = self.simple_plot(cels, 'Training Epochs', 'Train CE loss', '{}/train_celoss_traj.pdf'.format(dirName), ax=axd['B'])
+        axd['C'] = self.simple_plot(val_ls, 'Training Epochs', 'Val CE loss', '{}/val_celoss_traj.pdf'.format(dirName), ax=axd['C'])
+        axd['D'] = self.simple_plot(test_ls, 'Training Epochs', 'Test CE loss', '{}/test_celoss_traj.pdf'.format(dirName), ax=axd['D'])
+        axd['E'] = self.simple_plot(zls, 'Training Epochs', 'det loss', '{}/zloss_traj.pdf'.format(dirName), ax=axd['E'])
+        axd['F'] = self.simple_plot(zrls, 'Training Epochs', 'rules loss', '{}/zrloss_traj.pdf'.format(dirName), ax=axd['F'])
+        axd['G'] = self.simple_plot(wls, 'Training Epochs', 'wts loss', '{}/wloss_traj.pdf'.format(dirName), ax=axd['G'])
+        axd['H'] = self.simple_plot(wls, 'Training Epochs', 'cov. loss (abun)', '{}/tloss_traj.pdf'.format(dirName), ax=axd['H'])
+        axd['I'] = self.simple_plot(wls, 'Training Epochs', 'cov. loss (slope)', '{}/tslopeloss_traj.pdf'.format(dirName), ax=axd['I'])
+        axd['J'] = self.simple_plot(kls, 'Training Epochs', 'kappa loss', '{}/kappaloss_traj.pdf'.format(dirName), ax=axd['J'])
+        axd['K'] = self.simple_plot(tlsa, 'Training Epochs', 'eps loss (abun)', '{}/timelossa_abun_traj.pdf'.format(dirName), ax=axd['K'])
+        axd['L'] = self.simple_plot(tlsb, 'Training Epochs', 'del loss (abun)', '{}/timelossb_abun_traj.pdf'.format(dirName), ax=axd['L'])
+        axd['M'] = self.simple_plot(tslsa, 'Training Epochs', 'eps loss (slope)', '{}/timelossa_slope_traj.pdf'.format(dirName), ax=axd['M'])
+        axd['N'] = self.simple_plot(tslsb, 'Training Epochs', 'del loss (slope)', '{}/timelossb_slope_traj.pdf'.format(dirName), ax=axd['N'])
+        axd['O'] = self.simple_plot(embls, 'Training Epochs', 'Emb loss', '{}/embloss_traj.pdf'.format(dirName), ax=axd['O'])
+        axd['P'] = self.simple_plot(rnls, 'Training Epochs', 'Rule Norm. loss', '{}/ruleloss_traj.pdf'.format(dirName), ax=axd['P'])
+        axd['Q'] = self.simple_plot(embls, 'Training Epochs', 'Det. Norm. loss', '{}/detloss_traj.pdf'.format(dirName), ax=axd['Q'])
+        plt.subplot_tool()
+        plt.savefig('{}/losses.pdf'.format(dirName))
+        plt.close()
+
 
         if self.args.save_as_csv:
             losses_csv.to_csv('{}/losses_dump.csv'.format(dirName), index=False)
