@@ -13,4 +13,4 @@ We present a new differentiable model that learns human interpretable rules from
 
 
 # Demo
-We included a jupyter notebook [here](https://github.com/gerberlab/mditre/blob/mditre_v2/mditre/demo.ipynb) describing how to use the code.
+We included a jupyter notebook [here](https://github.com/gerberlab/mditre/blob/master/mditre/demo.ipynb) describing how to use the code.
