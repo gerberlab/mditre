@@ -4,7 +4,7 @@ setup(
     name='mditre',
     version='0.1.0',    
     description='Microbial Differentibale Temporal Rule Engine',
-    url='https://github.com/gerberlab/mditre/mditre_v2',
+    url='https://github.com/gerberlab/mditre',
     author='Venkata Suhas Maringanti',
     author_email='vsuhas.m@gmail.com',
     license='GPLv3',
