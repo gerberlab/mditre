@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='mditre',
-    version='0.1.0',    
+    version='0.0.1',    
     description='Microbial Differentibale Temporal Rule Engine',
     url='https://github.com/gerberlab/mditre',
     author='Venkata Suhas Maringanti',
@@ -28,4 +28,5 @@ setup(
         "License :: OSI Approved :: GNU General Public License (GPL)",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
+    python_requires=">=3.6",
 )

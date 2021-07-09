@@ -2,19 +2,20 @@
 We present a new differentiable model that learns human interpretable rules from microbiome time-series data for classifying the status of the human host.
 
 # Installation (Python 3.6 and CUDA 10.0)
-### From source:
-#### First clone the repo
+First install mditre package from pip via web or source. Then install pytorch.
+### Install mditre from pip via web:
+```
+pip install mditre
+```
+### Install mditre from pip via source:
 ```
 git clone https://github.com/gerberlab/mditre.git
 cd mditre
+pip install .
 ```
-#### Install pytorch
+### Install pytorch from pip
 ```
 pip install torch==1.4.0 torchvision==0.5.0 -f https://download.pytorch.org/whl/cu100/torch_stable.html
-```
-#### Install mditre
-```
-pip install .
 ```
 
 # Usage
