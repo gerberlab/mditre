@@ -1,7 +1,7 @@
-# Scalable learning of interpretable rules for the microbiome time-series domain
+# MDITRE: scalable and interpretable machine learning for predicting host status from temporal microbiome dynamics
 We present a new differentiable model that learns human interpretable rules from microbiome time-series data for classifying the status of the human host.
 
-# Installation (Python 3.6 and CUDA 10.0)
+# Installation (Python 3.6+ and CUDA 10.0)
 First install mditre package from pip via web or source. Then install pytorch.
 ### Install mditre from pip via web:
 ```
