@@ -95,6 +95,9 @@ class SpatialAggDynamic(nn.Module):
         super(SpatialAggDynamic, self).__init__()
         # Initialize phylo. distance matrix as a parameter
         # with requires_grad = False
+        self.num_rules = num_rules
+        self.num_otu_centers = num_otu_centers
+        self.emb_dim = emb_dim
         self.register_buffer('dist', torch.from_numpy(dist))
 
         # OTU centers
@@ -107,8 +110,11 @@ class SpatialAggDynamic(nn.Module):
     def forward(self, x, k=1):
         # Compute unnormalized OTU weights
         kappa = self.kappa.exp().unsqueeze(-1)
-        dist = (self.eta.unsqueeze(2) - self.dist).norm(2, dim=-1)
+        dist = (self.eta.reshape(self.num_rules, self.num_otu_centers, 1, self.emb_dim) - self.dist).norm(2, dim=-1)
         otu_wts_unnorm = torch.sigmoid((kappa - dist) * k)
+
+        # if not self.training:
+        #     otu_wts_unnorm = (kappa > dist).float()
 
         self.wts = otu_wts_unnorm
 
@@ -122,6 +128,7 @@ class SpatialAggDynamic(nn.Module):
         x = torch.einsum('kij,sjt->skit', otu_wts_unnorm, x)
 
         self.kappas = kappa
+        self.emb_dist = dist
 
         return x
 
@@ -175,6 +182,10 @@ class TimeAgg(nn.Module):
                 mask.unsqueeze(1).unsqueeze(1))
             time_wts_unnorm_slope = time_wts_unnorm_slope.mul(
                 mask.unsqueeze(1).unsqueeze(1))
+
+        # if not self.training:
+        #     time_wts_unnorm = (time_wts_unnorm > 0.9).float()
+        #     time_wts_unnorm_slope = (time_wts_unnorm_slope > 0.9).float()
 
         self.wts = time_wts_unnorm
         self.wts_slope = time_wts_unnorm_slope
@@ -236,6 +247,8 @@ class TimeAggAbun(nn.Module):
         # Tensor of time points, starting from 0 to num_time - 1 (experiment duration)
         self.num_time = num_time
         self.register_buffer('times', torch.arange(num_time, dtype=torch.float32))
+
+        # # Time window bandwidth parameter
         self.abun_a = nn.Parameter(torch.Tensor(num_rules, num_otus))
         self.abun_b = nn.Parameter(torch.Tensor(num_rules, num_otus))
 
@@ -254,10 +267,14 @@ class TimeAggAbun(nn.Module):
             time_wts_unnorm = time_wts_unnorm.mul(
                 mask.unsqueeze(1).unsqueeze(1))
 
+        # if not self.training:
+        #     time_wts_unnorm = (time_wts_unnorm > 0.9).float()
+        #     time_wts_unnorm_slope = (time_wts_unnorm_slope > 0.9).float()
+
         self.wts = time_wts_unnorm
 
         # Normalize importance time weights
-        time_wts = (time_wts_unnorm).div(time_wts_unnorm.sum(dim=-1, keepdims=True))
+        time_wts = (time_wts_unnorm).div(time_wts_unnorm.sum(dim=-1, keepdims=True) + 1e-8)
 
         if torch.isnan(time_wts).any():
             print(time_wts_unnorm.sum(-1))
@@ -266,7 +283,6 @@ class TimeAggAbun(nn.Module):
         # Aggregation over time dimension
         # Essentially a convolution over time
         x_abun = x.mul(time_wts).sum(dim=-1)
-
 
         self.m = mu
         self.s_abun = sigma
@@ -295,6 +311,9 @@ class Threshold(nn.Module):
     
     def forward(self, x, k=1):
         # Response of the detector for avg abundance
+        # if not self.training:
+        #     x = (x > self.thresh).float()
+        # else:
         x = torch.sigmoid((x - self.thresh) * k)
 
         return x
@@ -320,6 +339,9 @@ class Slope(nn.Module):
     
     def forward(self, x, k=1):
         # Response of the detector for avg abundance
+        # if not self.training:
+        #     x = (x > self.slope).float()
+        # else:
         x = torch.sigmoid((x - self.slope) * k)
 
         if torch.isnan(self.slope).any():
@@ -354,6 +376,9 @@ class Rules(nn.Module):
                 z = binary_concrete(self.alpha, k, hard=hard, use_noise=False)
         else:
             z = binary_concrete(self.alpha, k, hard=hard, use_noise=False)
+            # z = (z > 0.9).float()
+
+        self.x = x
 
         # Approximate logical AND operation
         x = (1 - z.mul(1 - x)).prod(dim=-1)
@@ -391,9 +416,60 @@ class DenseLayer(nn.Module):
             # Heavyside logistic for active rule selection
             # During evaluation only
             z = binary_concrete(self.beta, k, hard=hard, use_noise=False)
+            # z = (z > 0.9).float()
+
+
+        self.sub_log_odds = ((x * x_slope) * ((self.weight * z.unsqueeze(0)).reshape(-1))) + self.bias
 
         # Predict the outcome
         x = F.linear(x * x_slope, self.weight * z.unsqueeze(0), self.bias)
+
+        self.z = z
+
+        self.log_odds = x.squeeze(-1)
+
+        return x.squeeze(-1)
+
+    def init_params(self, init_args):
+        self.weight.data = torch.from_numpy(init_args['w_init']).float()
+        self.bias.data = torch.from_numpy(init_args['bias_init']).float()
+        self.beta.data = torch.from_numpy(init_args['beta_init']).float()
+
+
+class DenseLayerAbun(nn.Module):
+    """Linear classifier for computing the predicted outcome."""
+    def __init__(self, in_feat, out_feat):
+        super(DenseLayerAbun, self).__init__()
+        # Logistic regression coefficients
+        self.weight = nn.Parameter(torch.Tensor(out_feat, in_feat))
+
+        # Logistic regression bias
+        self.bias = nn.Parameter(torch.Tensor(out_feat))
+
+        # Parameter for selecting active rules
+        self.beta = nn.Parameter(torch.Tensor(in_feat))
+
+
+    def forward(self, x, k=1., hard=False, use_noise=True):
+        if self.training:
+            # Binary concrete for rule selection
+            if use_noise:
+                z = binary_concrete(self.beta, k, hard=hard)
+            else:
+                z = binary_concrete(self.beta, k, hard=hard, use_noise=False)
+        else:
+            # Heavyside logistic for active rule selection
+            # During evaluation only
+            z = binary_concrete(self.beta, k, hard=hard, use_noise=False)
+            # z = (z > 0.9).float()
+
+
+        self.sub_log_odds = ((x) * ((self.weight * z.unsqueeze(0)).reshape(-1))) + self.bias
+
+        # Predict the outcome
+        x = F.linear(x, self.weight * z.unsqueeze(0), self.bias)
+
+        self.log_odds = x.squeeze(-1)
 
         self.z = z
 
@@ -428,6 +504,34 @@ class MDITRE(nn.Module):
         x_slope = self.slope_func(x_slope, k=k_slope,)
         x_slope = self.rules_slope(x_slope, hard=hard, k=k_alpha, use_noise=use_noise)
         x = self.fc(x, x_slope, hard=hard, k=k_beta, use_noise=use_noise)
+        return x
+
+    def init_params(self, init_args):
+        for m in self.children():
+            m.init_params(init_args)
+
+        return
+
+
+class MDITREAbun(nn.Module):
+    """docstring for MDITRE"""
+    def __init__(self, num_rules, num_otus, num_otu_centers,
+            num_time, num_time_centers, dist, emb_dim):
+        super(MDITREAbun, self).__init__()
+        self.spat_attn = SpatialAggDynamic(num_rules, num_otu_centers, dist, emb_dim, num_otus)
+        self.time_attn = TimeAggAbun(num_rules, num_otu_centers, num_time, num_time_centers)
+        self.thresh_func = Threshold(num_rules, num_otu_centers, num_time_centers)
+        self.rules = Rules(num_rules, num_otu_centers, num_time_centers)
+        self.fc = DenseLayerAbun(num_rules, 1)
+
+    def forward(self, x, mask=None, k_alpha=1, k_beta=1,
+        k_otu=1., k_time=1., k_thresh=1., k_slope=1.,
+        hard=False, use_noise=True):
+        x = self.spat_attn(x, k=k_otu)
+        x = self.time_attn(x, mask=mask, k=k_time)
+        x = self.thresh_func(x, k=k_thresh,)
+        x = self.rules(x, hard=hard, k=k_alpha, use_noise=use_noise)
+        x = self.fc(x, hard=hard, k=k_beta, use_noise=use_noise)
         return x
 
     def init_params(self, init_args):

@@ -1,5 +1,9 @@
 import logging
 import sys
+import shutil
+import os
+
+import torch
 
 class AverageMeter:
     """Computes and stores the average and current value"""
@@ -35,3 +39,11 @@ def get_logger(file_path):
     logger.propagate = False
 
     return logger
+
+
+def save_checkpoint(state, ckpt_dir, is_best=False):
+    filename = os.path.join(ckpt_dir, 'checkpoint.pth.tar')
+    torch.save(state, filename)
+    if is_best:
+        best_filename = os.path.join(ckpt_dir, 'best.pth.tar')
+        shutil.copyfile(filename, best_filename)

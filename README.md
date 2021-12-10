@@ -14,20 +14,28 @@ cd mditre
 pip install .
 ```
 ### Install pytorch from pip
+#### Linux or Windows (with NVIDIA GPU and CUDA 10.0)
 ```
 pip install torch==1.4.0 torchvision==0.5.0 -f https://download.pytorch.org/whl/cu100/torch_stable.html
+```
+#### Linux or Windows (CPU only)
+```
+pip install torch==1.4.0 torchvision==0.5.0 cpuonly -c pytorch
+```
+#### MacOS (CUDA not supported)
+```
+pip install torch==1.4.0 torchvision==0.5.0
 ```
 
 # Usage
 ## Preparing a dataset
-MDITRE requires a dataset stored as a python pickle file, for example [here](https://github.com/gerberlab/mditre/blob/master/mditre/datasets/david_agg_filtered.pickle). We show how to create this pickle file by considering the dataset from David et al. (2014).
-1. Install MITRE in a separate python 2 environment using the steps listed [here](https://github.com/gerberlab/mitre#installation).
-2. MITRE operation is controlled by a configuration file as shown [here](https://github.com/gerberlab/mitre#quick-start). We only need to use MITRE data pre-processing utilities so we provide a modified configuration file [here](https://github.com/gerberlab/mditre/tree/master/mditre/datasets/david_reference.cfg). When run with this configuration file, MITRE loads the raw data from David et al. (2014) located [here](https://github.com/gerberlab/mitre/tree/master/mitre/example_data/david) and preprocesses it according to the options given in the configuration file under preprocessing sectoin.
-3. Run mitre with the given configuration file [here](https://github.com/gerberlab/mditre/tree/master/mditre/datasets/david_reference.cfg), which will generate a pickle object containing the MITRE preprocessed dataset given [here](https://github.com/gerberlab/mditre/tree/master/mditre/datasets/david_reference_dataset_object.cfg)
-4. Run `python ./mditre/convert_mitre_dataset.py` which converts MITRE dataset object into another pickle file containing the dataset as a dictionary for ease of use as given [here](https://github.com/gerberlab/mditre/blob/master/mditre/datasets/david_agg_filtered.pickle).
+We provide a tutorial [here](./mditre/data_loading_tutorial.ipynb) that describes how to go from a raw dataset to a preprocessed data structured readily accepted by the MDITRE model code.
 
 ## Configuration options
-MDITRE operation requires a list of configuration options to be passed as arguments as explained [here](https://github.com/gerberlab/mditre/blob/master/mditre/config_doc.pdf). Default values of all options are given in the parse() function [here](https://github.com/gerberlab/mditre/blob/master/mditre/trainer_model.py).
+MDITRE operation requires a list of configuration options to be passed as arguments as explained [here](https://github.com/gerberlab/mditre/blob/master/mditre/config_doc.pdf). Default values of all options are given in the parse() function [here](https://github.com/gerberlab/mditre/blob/master/mditre/trainer.py).
 
 ## Running MDITRE on the prepared dataset
-We included a jupyter notebook [here](https://github.com/gerberlab/mditre/blob/master/mditre/demo.ipynb) describing how to run the model on the prepared dataset from the previous step using default configuration options. Make sure to switch to the environment containing the mditre package before running the notebook.
+We included a jupyter notebook [here](./mditre/model_run_tutorial.ipynb) describing how to run the model on the prepared dataset from the previous step using default configuration options.
+
+## Rule visualization GUI
+We included a jupyter notebook [here](./mditre/rule_visualization_tutorial.ipynb) describing how to use and navigate the GUI for gaining insights into the rules learned by the MDITRE model.
