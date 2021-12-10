@@ -190,7 +190,7 @@ class Trainer(object):
         self.device = torch.device("cuda:0" if self.use_gpu else "cpu")
 
         if self.args.distributed and not torch.distributed.is_initialized():
-            torch.distributed.init_process_group(backend='nccl',
+            torch.distributed.init_process_group(backend='nccl' if self.use_gpu else "gloo",
                                                  init_method='env://',
                                                  timeout=datetime.timedelta(days=7))
             self.args.world_size = torch.distributed.get_world_size()

@@ -20,7 +20,7 @@ pip install torch==1.4.0 torchvision==0.5.0 -f https://download.pytorch.org/whl/
 ```
 #### Linux or Windows (CPU only)
 ```
-pip install torch==1.4.0 torchvision==0.5.0 cpuonly -c pytorch
+pip install torch==1.4.0+cpu torchvision==0.5.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 ```
 #### MacOS (CUDA not supported)
 ```
