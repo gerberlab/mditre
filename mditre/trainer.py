@@ -167,7 +167,7 @@ def parse():
     parser.add_argument('--use_topo', action='store_true',
                         help='Use topological distance')
 
-    args = parser.parse_args()
+    args = parser.parse_args("")
     return args
 
 
@@ -189,12 +189,17 @@ class Trainer(object):
         # Check for gpu, assign device
         self.device = torch.device("cuda:0" if self.use_gpu else "cpu")
 
-        if self.args.distributed and not torch.distributed.is_initialized():
+        if not torch.distributed.is_initialized():
             torch.distributed.init_process_group(backend='nccl' if self.use_gpu else "gloo",
                                                  init_method='env://',
                                                  timeout=datetime.timedelta(days=7))
             self.args.world_size = torch.distributed.get_world_size()
             self.args.rank = torch.distributed.get_rank()
+
+        if self.args.world_size > 1:
+            self.args.distributed = True
+        else:
+            self.args.distributed = False
 
         # Set random seed
         self.set_rng_seed(self.args.seed)
@@ -466,13 +471,13 @@ class Trainer(object):
                 'median_full': 0.30349404,
             }
 
-        if self.args.use_ref_kappa:
-            # Use median of the above distribution as the prior mean
-            self.kappa_prior_mean = ref_median_dist['median_family']
-            self.kappa_prior_var = ref_median_var['median_family']
-        else:
-            self.kappa_prior_mean = 0
-            self.kappa_prior_var = 1e5
+        # if self.args.use_ref_kappa:
+        # Use median of the above distribution as the prior mean
+        self.kappa_prior_mean = ref_median_dist['median_family']
+        self.kappa_prior_var = ref_median_var['median_family']
+        # else:
+        #     self.kappa_prior_mean = 0
+        #     self.kappa_prior_var = 1e5
         if self.use_gpu:
             mean = torch.tensor([self.kappa_prior_mean], dtype=torch.float32).cuda()
             std = torch.tensor(np.sqrt([self.kappa_prior_var]), dtype=torch.float32).cuda()

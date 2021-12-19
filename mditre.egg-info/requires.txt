@@ -1,0 +1,10 @@
+numpy
+scikit-learn
+PyQt5==5.11.3
+ete3
+matplotlib
+seaborn
+pandas
+scipy
+dendropy
+jupyterlab

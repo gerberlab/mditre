@@ -1,0 +1,17 @@
+LICENSE
+README.md
+setup.py
+mditre/__init__.py
+mditre/convert_mitre_dataset.py
+mditre/data.py
+mditre/data_utils.py
+mditre/models.py
+mditre/rule_viz.py
+mditre/trainer.py
+mditre/utils.py
+mditre/visualize.py
+mditre.egg-info/PKG-INFO
+mditre.egg-info/SOURCES.txt
+mditre.egg-info/dependency_links.txt
+mditre.egg-info/requires.txt
+mditre.egg-info/top_level.txt

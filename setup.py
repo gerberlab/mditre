@@ -2,13 +2,13 @@ from setuptools import setup
 
 setup(
     name='mditre',
-    version='0.1.0',    
+    version='0.1.4',    
     description='Microbial Differentibale Temporal Rule Engine',
     url='https://github.com/gerberlab/mditre',
     author='Venkata Suhas Maringanti',
     author_email='vsuhas.m@gmail.com',
     license='GPLv3',
-    packages=['mditre', 'mditre.datasets'],
+    packages=['mditre'],
     install_requires=[
                       'numpy',
                       'scikit-learn',
