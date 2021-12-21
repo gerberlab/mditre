@@ -70,9 +70,8 @@ warnings.filterwarnings("ignore")
 def parse():
     parser = argparse.ArgumentParser(description='Differentiable rule learning for microbiome')
     parser.add_argument('--data', metavar='DIR',
-                        default='./datasets/david_agg_filtered.pickle',
                         help='path to dataset')
-    parser.add_argument('--data_name', default='David', type=str,
+    parser.add_argument('--data_name', type=str,
                         help='Name of the dataset, will be used for log dirname')
     parser.add_argument('-j', '--workers', default=0, type=int,
                         help='number of data loading workers (default: 0)')
@@ -167,7 +166,7 @@ def parse():
     parser.add_argument('--use_topo', action='store_true',
                         help='Use topological distance')
 
-    args = parser.parse_args("")
+    args = parser.parse_args()
     return args
 
 
@@ -305,6 +304,9 @@ class Trainer(object):
         elif 't1d' in self.args.data.lower():
             self.label_0 = 'No T1D'
             self.label_1 = 'T1D'
+            self.args.lr_thresh = 1e-3
+            self.args.lr_slope = 1e-6
+            self.args.n_d = self.num_otus
         elif 'shao' in self.args.data.lower():
             self.label_0 = 'Normal delivery'
             self.label_1 = 'C-section'
@@ -763,6 +765,10 @@ class Trainer(object):
                         slope_init = np.zeros((self.num_rules, self.num_detectors), dtype=np.float32)
                     thresh_mean = list()
                     slope_mean = list()
+
+                    if not self.args.rank:
+                        self.logger.info('Initializing model!')
+
                     for l in range(self.num_rules):
                         for m in range(self.num_detectors):
                             # mu_abun = mu_init[l, m]
@@ -773,6 +779,7 @@ class Trainer(object):
                             # x_mask = self.X_mask[train_ids, :][:, window_start_abun:window_end_abun]
                             # X = x.sum(1).sum(-1) / x_mask.sum(-1)
                             # thresh_init[l, m] = X.mean()
+
 
                             x_t = np.zeros((len(train_ids), len(acc_center_abun)))
                             for n in range(len(acc_center_abun)):
@@ -1010,7 +1017,7 @@ class Trainer(object):
                 end = time.time()
 
                 self.logger.info('F1 score: %.2f' % (cv_f1))
-                self.logger.info('AUC score: %.2f' % (cv_auc))
+                # self.logger.info('AUC score: %.2f' % (cv_auc))
                 # self.logger.info('Preds: {}'.format(k_fold_test_preds))
                 # self.logger.info('labels: {}'.format(k_fold_test_true))
                 # self.logger.info(clf_report)
@@ -1019,7 +1026,7 @@ class Trainer(object):
                 #     self.logger.info('Fold {}: {}'.format(i, k_fold_test_f1[i]))
                 # self.logger.info('Mean F1 score across folds: {}'.format(np.mean(k_fold_test_f1)))
                 # self.logger.info('Median F1 score across folds: {}'.format(np.median(k_fold_test_f1)))
-                self.logger.info('Total train time: %.2f hrs' % ((end - start) / 3600.))
+                # self.logger.info('Total train time: %.2f hrs' % ((end - start) / 3600.))
 
                 if self.args.save_as_csv:
                     column_names = ['F1 score', 'AUC', 'True -', 'False +', 'False -', 'True +', 'Total running time (hours)']
