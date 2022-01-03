@@ -1,0 +1,53 @@
+{
+    "files": {
+        "phylo_model": "phylo_modeleZGq5M.json", 
+        "taxonomy": "RDP-11-5_TS_Processed_taxaTable.csv", 
+        "tree": "treen83AOV.tre", 
+        "aln_fasta": "RDP-11-5_TS_Processed_Aln.fa", 
+        "seq_info": "RDP-11-5_TS_Processed_seq_info.csv", 
+        "tree_stats": "RDP-11-5_TS_Processed_FastTree.log"
+    }, 
+    "rollback": {
+        "files": {
+            "phylo_model": "phylo_modeleZGq5M.json", 
+            "taxonomy": "RDP-11-5_TS_Processed_taxaTable.csv", 
+            "tree": "RDP-11-5_TS_Processed_FastTree.tre", 
+            "aln_fasta": "RDP-11-5_TS_Processed_Aln.fa", 
+            "seq_info": "RDP-11-5_TS_Processed_seq_info.csv", 
+            "tree_stats": "RDP-11-5_TS_Processed_FastTree.log"
+        }, 
+        "rollback": null, 
+        "metadata": {
+            "create_date": "2020-09-03 01:04:05", 
+            "format_version": "1.1", 
+            "locus": "16S_rRNA"
+        }, 
+        "md5": {
+            "phylo_model": "997096b0ee253a483d3d908d49081964", 
+            "taxonomy": "0ca75f0a13bb701778bf19a8f3da13d3", 
+            "tree": "738779220a42e935ea98b8b691929eba", 
+            "aln_fasta": "b3977d69e404ab211fd8bdbc3712eca3", 
+            "seq_info": "f95acd07f3daab99a8d960c35745aaa4", 
+            "tree_stats": "8fa24f2ab2d011c76be2dfb76f6374fb"
+        }
+    }, 
+    "log": [
+        "Rerooted", 
+        "Stripped refpkg (removed 1 files)", 
+        "Loaded initial files into empty refpkg"
+    ], 
+    "metadata": {
+        "create_date": "2020-09-03 01:04:05", 
+        "format_version": "1.1", 
+        "locus": "16S_rRNA"
+    }, 
+    "rollforward": null, 
+    "md5": {
+        "phylo_model": "997096b0ee253a483d3d908d49081964", 
+        "taxonomy": "0ca75f0a13bb701778bf19a8f3da13d3", 
+        "tree": "d643ce465c7c56d974c62d19fa032ef6", 
+        "aln_fasta": "b3977d69e404ab211fd8bdbc3712eca3", 
+        "seq_info": "f95acd07f3daab99a8d960c35745aaa4", 
+        "tree_stats": "8fa24f2ab2d011c76be2dfb76f6374fb"
+    }
+}
