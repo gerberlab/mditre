@@ -28,8 +28,8 @@ pip install torch==1.4.0 torchvision==0.5.0
 ```
 
 # Usage
-## MDITRE workflow on 16s and metagenomics data 
-We provide 2 tutorials, one for 16s-based data [here](https://github.com/gerberlab/mditre/blob/master/mditre/tutorials/Tutorial_1_16s_data.ipynb) and another for shotgun metagenomics (Metaphlan) based data [here](https://github.com/gerberlab/mditre/blob/master/mditre/tutorials/Tutorial_2_metaphlan_data.ipynb), which show how to use MDITRE for data loading and preprocessing, running the model code and using the GUI to interpret the learned rules for post-hoc analysis.
+## MDITRE workflow on 16S rRNA and shotgun metagenomics data 
+We provide 2 tutorials, one for 16s-based data [here](https://github.com/gerberlab/mditre/blob/master/mditre/tutorials/Tutorial_Bokulich_16S_data.ipynb) and another for shotgun metagenomics (Metaphlan) based data [here](https://github.com/gerberlab/mditre/blob/master/mditre/tutorials/Tutorial_2_metaphlan_data.ipynb), which show how to use MDITRE for data loading and preprocessing, running the model code and using the GUI to interpret the learned rules for post-hoc analysis.
 
 ## Configuration options
 MDITRE operation requires a list of configuration options to be passed as arguments as explained [here](https://github.com/gerberlab/mditre/blob/master/mditre/docs/config_doc.pdf).
